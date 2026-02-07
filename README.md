@@ -2,7 +2,7 @@
 
 A modern, full-stack e-commerce module built with React and Node.js, featuring product listing, shopping cart functionality, and complete Docker deployment.
 
-## 🚀 Features
+##  Features
 
 - **Product Listing**: Browse beautiful jewelry with images, prices, and descriptions
 - **Shopping Cart**: Add items, update quantities, and manage your cart
@@ -11,7 +11,7 @@ A modern, full-stack e-commerce module built with React and Node.js, featuring p
 - **REST API**: Express backend with MongoDB
 - **Docker Deployment**: Complete containerization with docker-compose
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Frontend
 - React 18
@@ -30,7 +30,7 @@ A modern, full-stack e-commerce module built with React and Node.js, featuring p
 - Nginx (Production server)
 - Multi-stage builds
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 naksh-jewels-ecommerce/
@@ -60,7 +60,7 @@ naksh-jewels-ecommerce/
 └── README.md
 ```
 
-## 🐳 Docker Deployment (Recommended)
+## Docker Deployment (Recommended)
 
 ### Prerequisites
 - Docker Desktop installed
@@ -100,7 +100,7 @@ docker-compose down
 docker-compose down -v
 ```
 
-## 💻 Local Development Setup
+## Local Development Setup
 
 ### Backend Setup
 
@@ -162,7 +162,7 @@ docker-compose down -v
 5. **Access the application**
    - Frontend: http://localhost:3000
 
-## 📡 API Documentation
+##  API Documentation
 
 ### Products
 
@@ -228,7 +228,7 @@ Content-Type: application/json
 GET /api/health
 ```
 
-## ✨ Key Features Implementation
+##  Key Features Implementation
 
 ### State Management
 - **Context API** used for global cart state
@@ -250,7 +250,7 @@ GET /api/health
 - Specific error types (Validation, Cast, Duplicate)
 - User-friendly error messages
 
-## 🎨 Design Highlights
+##  Design Highlights
 
 - Premium gold and dark color scheme
 - Smooth hover animations
@@ -259,7 +259,7 @@ GET /api/health
 - Loading states and spinners
 - Empty state handling
 
-## 📝 Development Notes
+##  Development Notes
 
 ### Functional Components Only
 All React components use functional components with hooks (no class components).
@@ -277,7 +277,7 @@ Meaningful commit messages following best practices:
 - Docker configuration
 - Documentation
 
-## 🧪 Testing
+##  Testing
 
 ### Manual Testing Checklist
 - [ ] Products load correctly
@@ -288,7 +288,7 @@ Meaningful commit messages following best practices:
 - [ ] Responsive on mobile devices
 - [ ] Docker deployment successful
 
-## 🚧 Future Enhancements
+##  Future Enhancements
 
 - User authentication
 - Payment integration
@@ -297,11 +297,11 @@ Meaningful commit messages following best practices:
 - Wishlist functionality
 - Product reviews and ratings
 
-## 👨‍💻 Author
+## Author
 
 Developed for Naksh Jewels Internship Assessment
 
-## 📄 License
+##  License
 
 This project is created for assessment purposes.
 
