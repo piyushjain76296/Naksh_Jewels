@@ -1,23 +1,23 @@
 .page-header {
     text-align: center;
-    margin-bottom: 4rem;
-    padding: 2rem 0;
+    margin-bottom: 4.5rem;
+    padding: 2.5rem 0;
 }
 
 .page-header h2 {
-    font-size: 3rem;
-    font-weight: 700;
+    font-size: 3.2rem;
+    font-weight: 800;
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin-bottom: 1rem;
-    letter-spacing: -1px;
+    letter-spacing: -1.5px;
 }
 
 .page-header p {
     color: var(--text-secondary);
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     max-width: 600px;
     margin: 0 auto;
     font-weight: 400;
@@ -26,8 +26,8 @@
 
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 2.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 3rem;
     margin-bottom: 3rem;
 }
 

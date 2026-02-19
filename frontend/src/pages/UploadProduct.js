@@ -14,6 +14,7 @@ const UploadProduct = () => {
         stock: '',
         image: ''
     });
+    const [dragActive, setDragActive] = useState(false);
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -39,13 +40,63 @@ const UploadProduct = () => {
         }));
     };
 
+    const handleDrag = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === "dragenter" || e.type === "dragover") {
+            setDragActive(true);
+        } else if (e.type === "dragleave") {
+            setDragActive(false);
+        }
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+
+        const files = e.dataTransfer.files;
+        if (files && files[0]) {
+            const file = files[0];
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    setFormData(prev => ({
+                        ...prev,
+                        image: event.target.result
+                    }));
+                };
+                reader.readAsDataURL(file);
+            } else {
+                setMessage({ type: 'error', text: 'Please drop an image file' });
+            }
+        }
+    };
+
+    const handleImageClick = () => {
+        document.getElementById('imageInput').click();
+    };
+
+    const handleImageChange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                setFormData(prev => ({
+                    ...prev,
+                    image: event.target.result
+                }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage('');
         setLoading(true);
 
         try {
-            // Add product to in-memory store via API
             const response = await fetch('http://localhost:5000/api/products/add', {
                 method: 'POST',
                 headers: {
@@ -73,7 +124,7 @@ const UploadProduct = () => {
                 setMessage({ type: 'error', text: 'Failed to upload product' });
             }
         } catch (error) {
-            setMessage({ type: 'error', text: 'Error uploading product' });
+            setMessage({ type: 'error', text: 'Error uploading product: ' + error.message });
         } finally {
             setLoading(false);
         }
@@ -83,7 +134,7 @@ const UploadProduct = () => {
         <div className="container upload-container">
             <div className="upload-card">
                 <h2>Upload New Product</h2>
-                <p className="upload-subtitle">Welcome, {user?.name}! Add a new jewelry item to your collection</p>
+                <p className="upload-subtitle">Add a new jewelry item to your collection, {user?.name}</p>
 
                 {message && (
                     <div className={`message ${message.type}`}>
@@ -94,7 +145,7 @@ const UploadProduct = () => {
                 <form onSubmit={handleSubmit} className="upload-form">
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Product Name *</label>
+                            <label>Product Name</label>
                             <input
                                 type="text"
                                 name="name"
@@ -106,7 +157,7 @@ const UploadProduct = () => {
                         </div>
 
                         <div className="form-group">
-                            <label>Category *</label>
+                            <label>Category</label>
                             <select
                                 name="category"
                                 value={formData.category}
@@ -128,7 +179,7 @@ const UploadProduct = () => {
 
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Price (₹) *</label>
+                            <label>Price (Rs)</label>
                             <input
                                 type="number"
                                 name="price"
@@ -142,7 +193,7 @@ const UploadProduct = () => {
                         </div>
 
                         <div className="form-group">
-                            <label>Stock Quantity *</label>
+                            <label>Stock Quantity</label>
                             <input
                                 type="number"
                                 name="stock"
@@ -156,7 +207,7 @@ const UploadProduct = () => {
                     </div>
 
                     <div className="form-group">
-                        <label>Description *</label>
+                        <label>Description</label>
                         <textarea
                             name="description"
                             value={formData.description}
@@ -168,20 +219,35 @@ const UploadProduct = () => {
                     </div>
 
                     <div className="form-group">
-                        <label>Image URL *</label>
-                        <input
-                            type="url"
-                            name="image"
-                            value={formData.image}
-                            onChange={handleChange}
-                            placeholder="https://example.com/image.jpg"
-                            required
-                        />
-                        {formData.image && (
-                            <div className="image-preview">
-                                <img src={formData.image} alt="Preview" onError={(e) => e.target.style.display = 'none'} />
-                            </div>
-                        )}
+                        <label>Product Image</label>
+                        <div
+                            className={`drag-drop-area ${dragActive ? 'active' : ''}`}
+                            onDragEnter={handleDrag}
+                            onDragLeave={handleDrag}
+                            onDragOver={handleDrag}
+                            onDrop={handleDrop}
+                            onClick={handleImageClick}
+                        >
+                            {formData.image ? (
+                                <div className="image-preview-large">
+                                    <img src={formData.image} alt="Preview" />
+                                    <p>Click to change image or drag new one</p>
+                                </div>
+                            ) : (
+                                <div className="drag-drop-content">
+                                    <div className="drag-drop-icon">⬆</div>
+                                    <p>Drag and drop image here</p>
+                                    <small>or click to select from computer</small>
+                                </div>
+                            )}
+                            <input
+                                id="imageInput"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                style={{ display: 'none' }}
+                            />
+                        </div>
                     </div>
 
                     <button type="submit" className="submit-btn" disabled={loading}>

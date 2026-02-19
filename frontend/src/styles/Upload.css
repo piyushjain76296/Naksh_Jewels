@@ -94,17 +94,70 @@
     min-height: 120px;
 }
 
-.image-preview {
-    margin-top: 1rem;
-    border-radius: 8px;
-    overflow: hidden;
-    max-height: 200px;
+.drag-drop-area {
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    background-color: var(--bg-light);
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-.image-preview img {
+.drag-drop-area:hover {
+    border-color: var(--primary-color);
+    background-color: var(--accent-color);
+}
+
+.drag-drop-area.active {
+    border-color: var(--primary-color);
+    background-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.1);
+}
+
+.drag-drop-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.drag-drop-icon {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.drag-drop-content p {
+    margin: 0;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.drag-drop-content small {
+    color: var(--text-secondary);
+}
+
+.image-preview-large {
+    position: relative;
+}
+
+.image-preview-large img {
     width: 100%;
-    height: 100%;
+    max-height: 250px;
     object-fit: cover;
+    border-radius: 8px;
+}
+
+.image-preview-large p {
+    margin-top: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
 }
 
 .submit-btn {
