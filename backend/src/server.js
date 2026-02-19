@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -36,31 +35,18 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/naksh-jewels';
 
-// Database connection
-mongoose.connect(MONGODB_URI)
-    .then(() => {
-        console.log('✅ MongoDB connected successfully');
-
-        // Start server
-        app.listen(PORT, () => {
-            console.log(`🚀 Server running on port ${PORT}`);
-            console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
-        });
-    })
-    .catch((err) => {
-        console.error('❌ MongoDB connection error:', err.message);
-        process.exit(1);
-    });
+// Start server (no MongoDB required for demo)
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📝 Note: Using in-memory data store for demo purposes`);
+});
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
     console.log('SIGTERM received, closing server...');
-    mongoose.connection.close(() => {
-        console.log('MongoDB connection closed');
-        process.exit(0);
-    });
+    process.exit(0);
 });
 
 module.exports = app;
