@@ -11,9 +11,12 @@ const productSchema = new mongoose.Schema({
         required: true,
         min: 0
     },
-    image: {
+    images: [{
         type: String,
         required: true
+    }],
+    image: {
+        type: String
     },
     description: {
         type: String,
@@ -28,9 +31,21 @@ const productSchema = new mongoose.Schema({
         required: true,
         min: 0,
         default: 0
+    },
+    owner: {
+        type: String,
+        default: 'admin'
     }
 }, {
     timestamps: true
+});
+
+// Set primary image to first image if not set
+productSchema.pre('save', function(next) {
+    if (!this.image && this.images && this.images.length > 0) {
+        this.image = this.images[0];
+    }
+    next();
 });
 
 module.exports = mongoose.model('Product', productSchema);

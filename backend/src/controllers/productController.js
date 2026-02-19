@@ -1,74 +1,71 @@
-// In-memory product store (temporary solution without MongoDB)
-let productsStore = [];
+const Product = require('../models/Product');
 
-// Sample products
+// Sample products for seeding
 const sampleProducts = [
     {
-        _id: '1',
         name: 'Diamond Necklace',
         price: 45000,
-        image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400',
+        images: ['https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400'],
         description: 'Elegant diamond necklace with 18K gold',
         category: 'Necklaces',
-        stock: 5
+        stock: 5,
+        owner: 'admin'
     },
     {
-        _id: '2',
         name: 'Gold Earrings',
         price: 12000,
-        image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400',
+        images: ['https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400'],
         description: 'Traditional gold earrings with intricate design',
         category: 'Earrings',
-        stock: 10
+        stock: 10,
+        owner: 'admin'
     },
     {
-        _id: '3',
         name: 'Pearl Bracelet',
         price: 8500,
-        image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400',
+        images: ['https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400'],
         description: 'Beautiful pearl bracelet with silver clasp',
         category: 'Bracelets',
-        stock: 8
+        stock: 8,
+        owner: 'admin'
     },
     {
-        _id: '4',
         name: 'Ruby Ring',
         price: 25000,
-        image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400',
+        images: ['https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400'],
         description: 'Stunning ruby ring set in platinum',
         category: 'Rings',
-        stock: 3
+        stock: 3,
+        owner: 'admin'
     },
     {
-        _id: '5',
         name: 'Emerald Pendant',
         price: 18000,
-        image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400',
+        images: ['https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400'],
         description: 'Exquisite emerald pendant with gold chain',
         category: 'Pendants',
-        stock: 6
+        stock: 6,
+        owner: 'admin'
     },
     {
-        _id: '6',
         name: 'Silver Anklet',
         price: 3500,
-        image: 'https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=400',
+        images: ['https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=400'],
         description: 'Delicate silver anklet with traditional bells',
         category: 'Anklets',
-        stock: 15
+        stock: 15,
+        owner: 'admin'
     }
 ];
-
-// Initialize with sample products
-productsStore = [...sampleProducts];
 
 // Get all products
 const getProducts = async (req, res, next) => {
     try {
+        const products = await Product.find().lean();
         res.status(200).json({
             success: true,
-            count: productsStore.length,
-            data: productsStore
+            count: products.length,
+            data: products
         });
     } catch (error) {
         next(error);
@@ -87,38 +84,42 @@ const addProduct = async (req, res, next) => {
             });
         }
 
-        const newProduct = {
-            _id: (productsStore.length + 1).toString(),
+        const newProduct = new Product({
             name,
             price: parseFloat(price),
             category,
             description,
             stock: parseInt(stock),
             images: Array.isArray(images) ? images : [images],
-            image: images[0] || images // For backward compatibility, set primary image
-        };
+            owner: req.body.owner || 'store-owner'
+        });
 
-        productsStore.push(newProduct);
+        const savedProduct = await newProduct.save();
 
         res.status(201).json({
             success: true,
             message: 'Product added successfully',
-            data: newProduct
+            data: savedProduct
         });
     } catch (error) {
         next(error);
     }
 };
 
-// Seed initial products (for demo purposes)
+// Seed initial products
 const seedProducts = async (req, res, next) => {
     try {
-        productsStore = [...sampleProducts];
+        // Clear existing products
+        await Product.deleteMany({});
+
+        // Insert sample products
+        const products = await Product.insertMany(sampleProducts);
 
         res.status(201).json({
             success: true,
             message: 'Products seeded successfully',
-            count: productsStore.length
+            count: products.length,
+            data: products
         });
     } catch (error) {
         next(error);
