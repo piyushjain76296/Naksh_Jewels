@@ -12,7 +12,7 @@ const UploadProduct = () => {
         category: '',
         description: '',
         stock: '',
-        image: ''
+        images: []
     });
     const [dragActive, setDragActive] = useState(false);
     const [message, setMessage] = useState('');
@@ -50,26 +50,39 @@ const UploadProduct = () => {
         }
     };
 
+    const processFiles = (files) => {
+        const fileArray = Array.from(files);
+        let processedCount = 0;
+
+        fileArray.forEach(file => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    setFormData(prev => ({
+                        ...prev,
+                        images: [...prev.images, event.target.result]
+                    }));
+                    processedCount++;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        if (fileArray.length > processedCount) {
+            setTimeout(() => {
+                setMessage({ type: 'error', text: 'Only image files are supported' });
+            }, 100);
+        }
+    };
+
     const handleDrop = (e) => {
         e.preventDefault();
         e.stopPropagation();
         setDragActive(false);
 
         const files = e.dataTransfer.files;
-        if (files && files[0]) {
-            const file = files[0];
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    setFormData(prev => ({
-                        ...prev,
-                        image: event.target.result
-                    }));
-                };
-                reader.readAsDataURL(file);
-            } else {
-                setMessage({ type: 'error', text: 'Please drop an image file' });
-            }
+        if (files && files.length > 0) {
+            processFiles(files);
         }
     };
 
@@ -78,22 +91,32 @@ const UploadProduct = () => {
     };
 
     const handleImageChange = (e) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                setFormData(prev => ({
-                    ...prev,
-                    image: event.target.result
-                }));
-            };
-            reader.readAsDataURL(file);
+        if (e.target.files && e.target.files.length > 0) {
+            processFiles(e.target.files);
         }
+    };
+
+    const removeImage = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            images: prev.images.filter((_, i) => i !== index)
+        }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage('');
+
+        if (!formData.images || formData.images.length === 0) {
+            setMessage({ type: 'error', text: 'Please upload at least one product image' });
+            return;
+        }
+
+        if (!formData.name || !formData.price || !formData.category || !formData.stock || !formData.description) {
+            setMessage({ type: 'error', text: 'Please fill in all required fields' });
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -103,9 +126,12 @@ const UploadProduct = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    ...formData,
+                    name: formData.name,
                     price: parseFloat(formData.price),
-                    stock: parseInt(formData.stock)
+                    category: formData.category,
+                    description: formData.description,
+                    stock: parseInt(formData.stock),
+                    images: formData.images
                 })
             });
 
@@ -117,11 +143,12 @@ const UploadProduct = () => {
                     category: '',
                     description: '',
                     stock: '',
-                    image: ''
+                    images: []
                 });
                 setTimeout(() => navigate('/'), 2000);
             } else {
-                setMessage({ type: 'error', text: 'Failed to upload product' });
+                const errorData = await response.json();
+                setMessage({ type: 'error', text: errorData.error || 'Failed to upload product' });
             }
         } catch (error) {
             setMessage({ type: 'error', text: 'Error uploading product: ' + error.message });
@@ -145,7 +172,7 @@ const UploadProduct = () => {
                 <form onSubmit={handleSubmit} className="upload-form">
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Product Name</label>
+                            <label>Product Name *</label>
                             <input
                                 type="text"
                                 name="name"
@@ -157,7 +184,7 @@ const UploadProduct = () => {
                         </div>
 
                         <div className="form-group">
-                            <label>Category</label>
+                            <label>Category *</label>
                             <select
                                 name="category"
                                 value={formData.category}
@@ -179,7 +206,7 @@ const UploadProduct = () => {
 
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Price (Rs)</label>
+                            <label>Price (Rs) *</label>
                             <input
                                 type="number"
                                 name="price"
@@ -193,7 +220,7 @@ const UploadProduct = () => {
                         </div>
 
                         <div className="form-group">
-                            <label>Stock Quantity</label>
+                            <label>Stock Quantity *</label>
                             <input
                                 type="number"
                                 name="stock"
@@ -207,7 +234,7 @@ const UploadProduct = () => {
                     </div>
 
                     <div className="form-group">
-                        <label>Description</label>
+                        <label>Description *</label>
                         <textarea
                             name="description"
                             value={formData.description}
@@ -219,7 +246,7 @@ const UploadProduct = () => {
                     </div>
 
                     <div className="form-group">
-                        <label>Product Image</label>
+                        <label>Product Images * ({formData.images.length} uploaded)</label>
                         <div
                             className={`drag-drop-area ${dragActive ? 'active' : ''}`}
                             onDragEnter={handleDrag}
@@ -228,29 +255,49 @@ const UploadProduct = () => {
                             onDrop={handleDrop}
                             onClick={handleImageClick}
                         >
-                            {formData.image ? (
-                                <div className="image-preview-large">
-                                    <img src={formData.image} alt="Preview" />
-                                    <p>Click to change image or drag new one</p>
-                                </div>
-                            ) : (
-                                <div className="drag-drop-content">
-                                    <div className="drag-drop-icon">⬆</div>
-                                    <p>Drag and drop image here</p>
-                                    <small>or click to select from computer</small>
-                                </div>
-                            )}
-                            <input
-                                id="imageInput"
-                                type="file"
-                                accept="image/*"
-                                onChange={handleImageChange}
-                                style={{ display: 'none' }}
-                            />
+                            <div className="drag-drop-content">
+                                <div className="drag-drop-icon">Image Upload</div>
+                                <p>Drag & drop images here</p>
+                                <small>or click to select files (multiple images supported)</small>
+                            </div>
                         </div>
+                        <input
+                            id="imageInput"
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            style={{ display: 'none' }}
+                        />
                     </div>
 
-                    <button type="submit" className="submit-btn" disabled={loading}>
+                    {formData.images.length > 0 && (
+                        <div className="images-preview">
+                            <h4>Uploaded Images ({formData.images.length})</h4>
+                            <div className="images-grid">
+                                {formData.images.map((image, index) => (
+                                    <div key={index} className="image-preview-item">
+                                        <img src={image} alt={`Product ${index + 1}`} />
+                                        <button
+                                            type="button"
+                                            className="remove-image-btn"
+                                            onClick={() => removeImage(index)}
+                                            title="Remove image"
+                                        >
+                                            X
+                                        </button>
+                                        <span className="image-number">{index + 1}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <button
+                        type="submit"
+                        className="submit-btn"
+                        disabled={loading || !formData.images.length}
+                    >
                         {loading ? 'Uploading...' : 'Upload Product'}
                     </button>
                 </form>

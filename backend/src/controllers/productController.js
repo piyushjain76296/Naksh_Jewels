@@ -78,12 +78,12 @@ const getProducts = async (req, res, next) => {
 // Add new product
 const addProduct = async (req, res, next) => {
     try {
-        const { name, price, category, description, stock, image } = req.body;
+        const { name, price, category, description, stock, images } = req.body;
 
-        if (!name || !price || !category || !description || stock === undefined || !image) {
+        if (!name || !price || !category || !description || stock === undefined || !images || images.length === 0) {
             return res.status(400).json({
                 success: false,
-                error: 'Missing required fields'
+                error: 'Missing required fields. Images array is required.'
             });
         }
 
@@ -94,7 +94,8 @@ const addProduct = async (req, res, next) => {
             category,
             description,
             stock: parseInt(stock),
-            image
+            images: Array.isArray(images) ? images : [images],
+            image: images[0] || images // For backward compatibility, set primary image
         };
 
         productsStore.push(newProduct);
