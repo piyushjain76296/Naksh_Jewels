@@ -80,29 +80,39 @@ const sampleProducts = [
 // Get all products
 const getProducts = async (req, res, next) => {
     try {
+        let products;
+        
         if (useDatabase) {
             // Use MongoDB
-            const products = await Product.find().lean();
-            res.status(200).json({
-                success: true,
-                count: products.length,
-                data: products
-            });
+            products = await Product.find().lean();
         } else {
             // Use in-memory store
-            res.status(200).json({
-                success: true,
-                count: productsStore.length,
-                data: productsStore
-            });
+            products = productsStore;
         }
+
+        // Ensure all products have 'image' field set to first image in array
+        const formattedProducts = products.map(product => ({
+            ...product,
+            image: product.image || (product.images && product.images[0]) || ''
+        }));
+
+        res.status(200).json({
+            success: true,
+            count: formattedProducts.length,
+            data: formattedProducts
+        });
     } catch (error) {
         // Fallback to in-memory if MongoDB fails
         try {
+            const formattedProducts = productsStore.map(product => ({
+                ...product,
+                image: product.image || (product.images && product.images[0]) || ''
+            }));
+            
             res.status(200).json({
                 success: true,
-                count: productsStore.length,
-                data: productsStore
+                count: formattedProducts.length,
+                data: formattedProducts
             });
         } catch (fallbackError) {
             next(fallbackError);
