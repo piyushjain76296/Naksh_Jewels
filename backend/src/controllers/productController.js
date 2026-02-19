@@ -1,4 +1,23 @@
 const Product = require('../models/Product');
+const mongoose = require('mongoose');
+
+// Fallback in-memory store when MongoDB is not available
+let productsStore = [];
+let useDatabase = false;
+
+// Check if MongoDB is connected
+const isMongoDBConnected = () => {
+    return mongoose.connection.readyState === 1;
+};
+
+// Initialize database variable after connection check
+setTimeout(() => {
+    useDatabase = isMongoDBConnected();
+    if (!useDatabase && productsStore.length === 0) {
+        // Seed with sample products if using in-memory store
+        productsStore = [...sampleProducts];
+    }
+}, 2000);
 
 // Sample products for seeding
 const sampleProducts = [
@@ -61,14 +80,33 @@ const sampleProducts = [
 // Get all products
 const getProducts = async (req, res, next) => {
     try {
-        const products = await Product.find().lean();
-        res.status(200).json({
-            success: true,
-            count: products.length,
-            data: products
-        });
+        if (useDatabase) {
+            // Use MongoDB
+            const products = await Product.find().lean();
+            res.status(200).json({
+                success: true,
+                count: products.length,
+                data: products
+            });
+        } else {
+            // Use in-memory store
+            res.status(200).json({
+                success: true,
+                count: productsStore.length,
+                data: productsStore
+            });
+        }
     } catch (error) {
-        next(error);
+        // Fallback to in-memory if MongoDB fails
+        try {
+            res.status(200).json({
+                success: true,
+                count: productsStore.length,
+                data: productsStore
+            });
+        } catch (fallbackError) {
+            next(fallbackError);
+        }
     }
 };
 
@@ -84,23 +122,49 @@ const addProduct = async (req, res, next) => {
             });
         }
 
-        const newProduct = new Product({
-            name,
-            price: parseFloat(price),
-            category,
-            description,
-            stock: parseInt(stock),
-            images: Array.isArray(images) ? images : [images],
-            owner: req.body.owner || 'store-owner'
-        });
+        if (useDatabase) {
+            // Use MongoDB
+            const newProduct = new Product({
+                name,
+                price: parseFloat(price),
+                category,
+                description,
+                stock: parseInt(stock),
+                images: Array.isArray(images) ? images : [images],
+                owner: req.body.owner || 'store-owner'
+            });
 
-        const savedProduct = await newProduct.save();
+            const savedProduct = await newProduct.save();
 
-        res.status(201).json({
-            success: true,
-            message: 'Product added successfully',
-            data: savedProduct
-        });
+            res.status(201).json({
+                success: true,
+                message: 'Product added successfully',
+                data: savedProduct
+            });
+        } else {
+            // Use in-memory store
+            const newProduct = {
+                _id: new Date().getTime().toString(),
+                name,
+                price: parseFloat(price),
+                category,
+                description,
+                stock: parseInt(stock),
+                images: Array.isArray(images) ? images : [images],
+                image: images[0],
+                owner: req.body.owner || 'store-owner',
+                createdAt: new Date(),
+                updatedAt: new Date()
+            };
+
+            productsStore.push(newProduct);
+
+            res.status(201).json({
+                success: true,
+                message: 'Product added successfully (stored in-memory)',
+                data: newProduct
+            });
+        }
     } catch (error) {
         next(error);
     }
@@ -109,18 +173,28 @@ const addProduct = async (req, res, next) => {
 // Seed initial products
 const seedProducts = async (req, res, next) => {
     try {
-        // Clear existing products
-        await Product.deleteMany({});
+        if (useDatabase) {
+            // Use MongoDB
+            await Product.deleteMany({});
+            const products = await Product.insertMany(sampleProducts);
 
-        // Insert sample products
-        const products = await Product.insertMany(sampleProducts);
+            res.status(201).json({
+                success: true,
+                message: 'Products seeded successfully',
+                count: products.length,
+                data: products
+            });
+        } else {
+            // Use in-memory store
+            productsStore = [...sampleProducts];
 
-        res.status(201).json({
-            success: true,
-            message: 'Products seeded successfully',
-            count: products.length,
-            data: products
-        });
+            res.status(201).json({
+                success: true,
+                message: 'Products seeded successfully (in-memory)',
+                count: productsStore.length,
+                data: productsStore
+            });
+        }
     } catch (error) {
         next(error);
     }
