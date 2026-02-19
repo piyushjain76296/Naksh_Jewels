@@ -75,6 +75,40 @@ const getProducts = async (req, res, next) => {
     }
 };
 
+// Add new product
+const addProduct = async (req, res, next) => {
+    try {
+        const { name, price, category, description, stock, image } = req.body;
+
+        if (!name || !price || !category || !description || stock === undefined || !image) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing required fields'
+            });
+        }
+
+        const newProduct = {
+            _id: (productsStore.length + 1).toString(),
+            name,
+            price: parseFloat(price),
+            category,
+            description,
+            stock: parseInt(stock),
+            image
+        };
+
+        productsStore.push(newProduct);
+
+        res.status(201).json({
+            success: true,
+            message: 'Product added successfully',
+            data: newProduct
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // Seed initial products (for demo purposes)
 const seedProducts = async (req, res, next) => {
     try {
@@ -92,5 +126,6 @@ const seedProducts = async (req, res, next) => {
 
 module.exports = {
     getProducts,
-    seedProducts
+    seedProducts,
+    addProduct
 };
